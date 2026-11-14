@@ -16,8 +16,10 @@ import { TriageService } from './triage.service.js';
 const WEB_DIST = process.env.WEB_DIST ?? join(process.cwd(), '..', 'web', 'dist', 'web', 'browser');
 
 const ssl = process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false };
-// Lets the demo share a Supabase project with other apps without table-name clashes.
-const schema = process.env.DATABASE_SCHEMA?.replace(/[^a-z0-9_]/gi, '') || undefined;
+// Always its own schema, never "public": with synchronize on, sharing a schema with
+// another app would let TypeORM try to reshape that app's tables (e.g. its "users").
+const schema = process.env.DATABASE_SCHEMA?.replace(/[^a-z0-9_]/gi, '') || 'helpdesk';
+if (schema === 'public') throw new Error('DATABASE_SCHEMA must not be "public"');
 
 const database = process.env.DATABASE_URL
   ? TypeOrmModule.forRootAsync({

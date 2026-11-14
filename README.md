@@ -1,19 +1,19 @@
-# IT Helpdesk · AI-assisted ticketing
+﻿# IT Helpdesk ยท AI-assisted ticketing
 
-An internal IT ticketing system: staff report problems in plain Thai or English, and **Claude triages each ticket** — picking the category and priority, writing a one-line summary for the queue, and drafting a first reply that the IT agent edits before sending.
+An internal IT ticketing system: staff report problems in plain Thai or English, and **Claude triages each ticket** โ€” picking the category and priority, writing a one-line summary for the queue, and drafting a first reply that the IT agent edits before sending.
 
 Built from what I saw doing user support: people describe problems vaguely, urgency depends on business impact rather than tone, and agents lose time re-reading tickets and writing the same first replies.
 
-**Stack:** NestJS 12 · Angular 22 · TypeORM · PostgreSQL · Anthropic Claude API · JWT · Vitest · Docker · GitHub Actions
+**Stack:** NestJS 12 ยท Angular 22 ยท TypeORM ยท PostgreSQL ยท Anthropic Claude API ยท JWT ยท Vitest ยท Docker ยท GitHub Actions
 
 ## What it does
 
 | | |
 |---|---|
-| **AI triage** | Claude (`claude-opus-5-5`, structured output validated with Zod) returns category, priority, summary and a draft reply. If no API key is set, the call fails, or the daily cap is hit, a keyword-rule fallback takes over — filing a ticket never depends on the AI being up. |
-| **SLA tracking** | Due time set by priority (4 h urgent → 72 h low), overdue flags, % resolved within SLA, average resolution time. |
-| **Status flow** | `open → in_progress ⇄ waiting → resolved → closed`, enforced on the server. A requester can only cancel an open ticket or confirm/reject a fix; a reply from the requester moves a *waiting* ticket back to the queue. |
-| **Safe "take ticket"** | Claiming uses one conditional `UPDATE … WHERE assignee IS NULL`, so when two agents click at once exactly one wins and the other gets `409`. |
+| **AI triage** | Claude (`claude-opus-5-5`, structured output validated with Zod) returns category, priority, summary and a draft reply. If no API key is set, the call fails, or the daily cap is hit, a keyword-rule fallback takes over โ€” filing a ticket never depends on the AI being up. |
+| **SLA tracking** | Due time set by priority (4 h urgent โ’ 72 h low), overdue flags, % resolved within SLA, average resolution time. |
+| **Status flow** | `open โ’ in_progress โ waiting โ’ resolved โ’ closed`, enforced on the server. A requester can only cancel an open ticket or confirm/reject a fix; a reply from the requester moves a *waiting* ticket back to the queue. |
+| **Safe "take ticket"** | Claiming uses one conditional `UPDATE โ€ฆ WHERE assignee IS NULL`, so when two agents click at once exactly one wins and the other gets `409`. |
 | **Roles** | Requester, agent, admin. Requesters see only their own tickets (others return `404`, not `403`), never see internal notes or the AI draft. |
 
 ## Try it
@@ -24,7 +24,7 @@ The login page has one-click buttons for each. API docs (Swagger) are at `/api/d
 ### Run locally
 
 ```bash
-# API on :3000 — uses in-memory SQLite (sql.js) when DATABASE_URL is not set
+# API on :3000 โ€” uses in-memory SQLite (sql.js) when DATABASE_URL is not set
 cd api && npm ci && npm run start:dev
 # Angular on :4200, proxying /api to :3000
 cd web && npm ci && npx ng serve
@@ -40,7 +40,7 @@ ANTHROPIC_API_KEY=sk-ant-... docker compose up --build   # key optional
 | Variable | Purpose |
 |---|---|
 | `DATABASE_URL` | PostgreSQL connection string (Supabase works). Unset = in-memory SQLite. |
-| `DATABASE_SCHEMA` | Optional Postgres schema (e.g. `helpdesk`) to share a database with other apps. |
+| `DATABASE_SCHEMA` | Postgres schema for the app's tables (default `helpdesk`, never `public`), so it can share a database with other apps safely. |
 | `JWT_SECRET` | Required in production. |
 | `ANTHROPIC_API_KEY` | Enables Claude triage. Unset = keyword rules. |
 | `AI_DAILY_LIMIT` | Max Claude calls per day per instance (default 100), so a public demo can't run up a bill. |
