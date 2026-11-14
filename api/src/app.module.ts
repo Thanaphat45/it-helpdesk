@@ -18,6 +18,8 @@ const database = process.env.DATABASE_URL
   ? TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
+      // Lets the demo share a Supabase project with other apps without table-name clashes.
+      schema: process.env.DATABASE_SCHEMA || undefined,
       ssl: process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false },
       entities: ENTITIES,
       // Three tables and a demo: sync is fine here. A real deployment would use migrations.

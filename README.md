@@ -40,6 +40,7 @@ ANTHROPIC_API_KEY=sk-ant-... docker compose up --build   # key optional
 | Variable | Purpose |
 |---|---|
 | `DATABASE_URL` | PostgreSQL connection string (Supabase works). Unset = in-memory SQLite. |
+| `DATABASE_SCHEMA` | Optional Postgres schema (e.g. `helpdesk`) to share a database with other apps. |
 | `JWT_SECRET` | Required in production. |
 | `ANTHROPIC_API_KEY` | Enables Claude triage. Unset = keyword rules. |
 | `AI_DAILY_LIMIT` | Max Claude calls per day per instance (default 100), so a public demo can't run up a bill. |
