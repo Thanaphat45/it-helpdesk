@@ -5,6 +5,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import pg from 'pg';
 import { AuthController, AuthGuard } from './auth.js';
 import { ENTITIES } from './entities.js';
 import { MetaController, TicketsController } from './tickets.controller.js';
@@ -14,16 +15,30 @@ import { TriageService } from './triage.service.js';
 // The Angular build, copied next to the API in the Docker image.
 const WEB_DIST = process.env.WEB_DIST ?? join(process.cwd(), '..', 'web', 'dist', 'web', 'browser');
 
+const ssl = process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false };
+// Lets the demo share a Supabase project with other apps without table-name clashes.
+const schema = process.env.DATABASE_SCHEMA?.replace(/[^a-z0-9_]/gi, '') || undefined;
+
 const database = process.env.DATABASE_URL
-  ? TypeOrmModule.forRoot({
-      type: 'postgres',
-      url: process.env.DATABASE_URL,
-      // Lets the demo share a Supabase project with other apps without table-name clashes.
-      schema: process.env.DATABASE_SCHEMA || undefined,
-      ssl: process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false },
-      entities: ENTITIES,
-      // Three tables and a demo: sync is fine here. A real deployment would use migrations.
-      synchronize: true,
+  ? TypeOrmModule.forRootAsync({
+      useFactory: async () => {
+        if (schema) {
+          // TypeORM's synchronize creates tables but not the schema they live in.
+          const client = new pg.Client({ connectionString: process.env.DATABASE_URL, ssl });
+          await client.connect();
+          await client.query(`CREATE SCHEMA IF NOT EXISTS "${schema}"`);
+          await client.end();
+        }
+        return {
+          type: 'postgres' as const,
+          url: process.env.DATABASE_URL,
+          schema,
+          ssl,
+          entities: ENTITIES,
+          // Three tables and a demo: sync is fine here. A real deployment would use migrations.
+          synchronize: true,
+        };
+      },
     })
   : TypeOrmModule.forRoot({ type: 'sqljs', entities: ENTITIES, synchronize: true });
 
