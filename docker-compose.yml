@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment: { POSTGRES_PASSWORD: helpdesk, POSTGRES_DB: helpdesk }
+    healthcheck: { test: ["CMD", "pg_isready", "-U", "postgres"], interval: 2s, retries: 20 }
+  app:
+    build: .
+    ports: ["3000:3000"]
+    environment:
+      DATABASE_URL: postgres://postgres:helpdesk@db:5432/helpdesk
+      DATABASE_SSL: "false"
+      JWT_SECRET: change-me-in-production
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    depends_on: { db: { condition: service_healthy } }
